@@ -17,12 +17,15 @@ public class main {
         try {
             JSONObject jsonData = (JSONObject) parser.parse(getJsonFile());
             JSONArray tickets = (JSONArray) jsonData.get("tickets");
-            tickets.forEach(t -> System.out.println(t));
+            tickets.forEach(t -> {
+                JSONObject ticketJsonObject = (JSONObject) t;
+                String departureTime = (String) ticketJsonObject.get("departure_time");
+                String arrivalTime = (String) ticketJsonObject.get("arrival_time");
+                System.out.println("dep " + departureTime + "; arrival " + arrivalTime);
+            });
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-
     }
 
     private static String getJsonFile() {
