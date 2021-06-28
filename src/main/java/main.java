@@ -8,18 +8,25 @@ import java.nio.file.Paths;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 
 public class main {
-    private static final String PATH = "src/main/resources/tickets.json";
+    private static final String PATH = "tickets.json";
     private static final String JSON_TICKET = "tickets";
     private static final String JSON_DEPARTURE_TIME = "departure_time";
+    private static final String JSON_DEPARTURE_DATE = "departure_date";
+    private static final String JSON_ARRIVAL_TIME = "arrival_time";
+    private static final String JSON_ARRIVAL_DATE = "arrival_date";
+    private static final String VVO_TIMEZONE = "Asia/Vladivostok";
+    private static final String TLV_TIMEZONE = "Asia/Jerusalem";
+
+    private static final double PERCENTILE = 90.0;
 
     public static void main(String[] args) {
 
         JSONParser parser = new JSONParser();
-        List<Long> durationInMinutesList = new LinkedList<>();
+        List<Long> durationInMinutesList = new ArrayList<>();
         try {
             JSONObject jsonData = (JSONObject) parser.parse(getJsonFile());
             JSONArray tickets = (JSONArray) jsonData.get(JSON_TICKET);
@@ -27,14 +34,14 @@ public class main {
             tickets.forEach(t -> {
                 JSONObject ticketJsonObject = (JSONObject) t;
                 String departureTime = (String) ticketJsonObject.get(JSON_DEPARTURE_TIME);
-                String departureDate = (String) ticketJsonObject.get("departure_date");
-                String arrivalTime = (String) ticketJsonObject.get("arrival_time");
-                String arrivalDate = (String) ticketJsonObject.get("arrival_date");
+                String departureDate = (String) ticketJsonObject.get(JSON_DEPARTURE_DATE);
+                String arrivalTime = (String) ticketJsonObject.get(JSON_ARRIVAL_TIME);
+                String arrivalDate = (String) ticketJsonObject.get(JSON_ARRIVAL_DATE);
 
                 LocalDateTime departureDateTime = getLocalDateTime(departureDate, departureTime);
                 LocalDateTime arrivalDateTime = getLocalDateTime(arrivalDate, arrivalTime);
-                ZoneId departureZone = ZoneId.of("Asia/Vladivostok");
-                ZoneId arrivalZone = ZoneId.of("Asia/Jerusalem");
+                ZoneId departureZone = ZoneId.of(VVO_TIMEZONE);
+                ZoneId arrivalZone = ZoneId.of(TLV_TIMEZONE);
                 Instant departureInstant = departureDateTime.atZone(departureZone).toInstant();
                 Instant arrivalInstant = arrivalDateTime.atZone(arrivalZone).toInstant();
                 durationInMinutesList.add(getDurationInMin(departureInstant, arrivalInstant));
@@ -44,6 +51,9 @@ public class main {
         }
         System.out.println("average time: "
                 + LocalTime.MIN.plus(Duration.ofMinutes(getAverageTime(durationInMinutesList))).toString());
+        System.out.println(PERCENTILE + " percentile: "
+                + LocalTime.MIN.plus(Duration.ofMinutes(getPercentile(durationInMinutesList, PERCENTILE))).toString());
+
     }
 
     private static String getJsonFile() {
@@ -71,5 +81,11 @@ public class main {
     private static Long getAverageTime(List<Long> list) {
         long sum = list.stream().mapToLong(l -> l).sum();
         return sum / list.size();
+    }
+
+    private static Long getPercentile(List<Long> list, double percentile) {
+        Collections.sort(list);
+        int index = (int) Math.ceil(percentile / 100.0 * list.size());
+        return list.get(index - 1);
     }
 }
