@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class main {
+public class Main {
     private static final String PATH = "tickets.json";
     private static final String JSON_TICKET = "tickets";
     private static final String JSON_DEPARTURE_TIME = "departure_time";
@@ -68,22 +68,22 @@ public class main {
         return builder.toString().replaceAll("\\uFEFF", "");
     }
 
-    private static LocalDateTime getLocalDateTime(String date, String time) {
+    private static LocalDateTime getLocalDateTime(final String date, final String time) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
         return LocalDateTime.parse(date + " "
                 + (time.length() == 5 ? time : "0" + time), formatter);
     }
 
-    private static Long getDurationInMin(Instant start, Instant finish) {
+    private static Long getDurationInMin(final Instant start, final Instant finish) {
         return Duration.between(start, finish).toMinutes();
     }
 
-    private static Long getAverageTime(List<Long> list) {
+    private static Long getAverageTime(final List<Long> list) {
         long sum = list.stream().mapToLong(l -> l).sum();
         return sum / list.size();
     }
 
-    private static Long getPercentile(List<Long> list, double percentile) {
+    private static Long getPercentile(final List<Long> list, final double percentile) {
         Collections.sort(list);
         int index = (int) Math.ceil(percentile / 100.0 * list.size());
         return list.get(index - 1);
